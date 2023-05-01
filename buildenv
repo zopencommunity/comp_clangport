@@ -1,6 +1,6 @@
 export ZOPEN_TYPE="BARE"
 
-export ZOPEN_NAME="ibm_go"
+export ZOPEN_NAME="ibm_clang"
 export ZOPEN_CONFIGURE=skip
 export ZOPEN_CHECK=skip
 export ZOPEN_MAKE=skip
@@ -10,26 +10,57 @@ zopen_append_to_env()
 {
 cat <<zz
   if [ ! -z "\$ZOPEN_IN_ZOPEN_BUILD" ]; then
-    # Find the path to go
-    GO_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type go | cut -f3 -d' ')
+    # Find the path to clang
+    CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
   else
-    GO_PATH=\$(/bin/type go | cut -f3 -d' ')
+    CLANG_PATH=\$(/bin/type clang | cut -f3 -d' ')
   fi
 
-  # If Go is not found, exit with an error message
-  if [ -z "\${GO_PATH}" ]; then
-      echo "Go not found"
+  # If Clang is not found, exit with an error message
+  if [ -z "\${CLANG_PATH}" ]; then
+      echo "Clang not found. Please install "
       return 1
   fi
 
-  if ! \${GO_PATH} version 2>&1 | grep -q "zos/s390x"; then
-    echo "The go executable is not a zos s390 go compiler"
+  if ! \${CLANG_PATH} --version 2>&1 | grep -q "s390x-ibm-zos"; then
+    echo "The clang executable is not a zos clang compiler"
     return 1;
   fi
 
   if [ ! -z "\$ZOPEN_IN_ZOPEN_BUILD" ]; then
-    # Set the PATH environment variable to the directory of the Go path
-    export PATH="\$(dirname "\${GO_PATH}"):\${PATH}"
+    # Set the PATH environment variable to the directory of the Clang path
+    export PATH="\$(dirname "\${CLANG_PATH}"):\${PATH}"
+    export CC="clang"
+    export CXX="clang++"
+    export ZOPEN_CPPFLAGS="-DNSIG=42 -D_XOPEN_SOURCE=600 -D_ALL_SOURCE -D_OPEN_SYS_FILE_EXT=1 -D_AE_BIMODAL=1 -D_ENHANCED_ASCII_EXT=0xFFFFFFFF"
+    export ZOPEN_CFLAGS="-fzos-le-char-mode=ascii -std=gnu11 -mnocsect -fno-short-enums -Wno-error"
+    export ZOPEN_CXXFLAGS="-fzos-le-char-mode=ascii -mnocsect -fno-short-enums -Wno-error"
+    export ZOPEN_LDFLAGS="-Wl,-bedit=no"
+
+    if \$buildInReleaseMode; then
+      ZOPEN_CFLAGS="\${ZOPEN_CFLAGS} -O3";
+      ZOPEN_CXXFLAGS="\${ZOPEN_CXXFLAGS} -O3";
+    else
+      ZOPEN_LDFLAGS=""
+    fi
+
+    # Confirm clang is at least OEL 2.0.0 (aka __COMPILER_VER__=50000000)
+    ccraw=\$(\${CC} -E -dM - </dev/null | grep '__COMPILER_VER__' | awk '{print substr(\$3,3)}')
+    if [ "\${ccraw}x" = "x" ]; then
+      printError "clang compiler specified, but it is not a 'IBM C/C++ for Open Enterprise Languages on z/OS' compiler"
+    fi
+    if [ \${ccraw} -lt 50000000 ] ; then
+      printError "clang compiler specified, need to be running at least IBM C for Open Enterprise Languages on z/OS 2"
+    fi
+
+    # Confirm clang++ is at least OEL 2.0.0 (aka __COMPILER_VER__=50000000)
+    ccraw=\$(\${CXX} -x c++ -E -dM - </dev/null | grep '__COMPILER_VER__' | awk '{print substr(\$3,3)}')
+    if [ "\${ccraw}x" = "x" ]; then
+      printError "clang++ compiler specified, but it is not a 'IBM C/C++ for Open Enterprise Languages on z/OS' compiler"
+    fi
+    if [ \${ccraw} -lt 50000000 ] ; then
+      printError "clang compiler specified, need to be running at least IBM C for Open Enterprise Languages on z/OS 2"
+    fi
   fi
 zz
 }
