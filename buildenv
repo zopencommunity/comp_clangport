@@ -2,7 +2,7 @@
 # In the future, this will be used to build clang from source
 export ZOPEN_TYPE="BARE"
 
-export ZOPEN_NAME="ibm_clang"
+export ZOPEN_NAME="comp_clang"
 export ZOPEN_CONFIGURE=skip
 export ZOPEN_CHECK=skip
 export ZOPEN_MAKE=skip
