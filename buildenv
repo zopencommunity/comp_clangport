@@ -1,3 +1,4 @@
+# Currently just checks for the presence of clang on the system, used to simplify zopen build 
 export ZOPEN_TYPE="BARE"
 
 export ZOPEN_NAME="ibm_clang"
