@@ -1,4 +1,5 @@
 # Currently just checks for the presence of clang on the system, used to simplify zopen build 
+# In the future, this will be used to build clang from source
 export ZOPEN_TYPE="BARE"
 
 export ZOPEN_NAME="ibm_clang"
@@ -17,14 +18,15 @@ cat <<zz
     CLANG_PATH=\$(/bin/type clang | cut -f3 -d' ')
   fi
 
+  echo "Checking for existing Clang installation..."
   # If Clang is not found, exit with an error message
   if [ -z "\${CLANG_PATH}" ]; then
-      echo "Clang not found. Please install "
+      echo "clang not found. Please download and install from https://epwt-www.mybluemix.net/software/support/trial/cst/programwebsite.wss?siteId=1803."
       return 1
   fi
 
   if ! \${CLANG_PATH} --version 2>&1 | grep -q "s390x-ibm-zos"; then
-    echo "The clang executable is not a zos clang compiler"
+    echo "The clang executable is not a zos clang compiler. Please download and install from https://epwt-www.mybluemix.net/software/support/trial/cst/programwebsite.wss?siteId=1803."
     return 1;
   fi
 
