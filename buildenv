@@ -36,8 +36,8 @@ cat <<zz
     export CC="clang"
     export CXX="clang++"
     export ZOPEN_CPPFLAGS="-DNSIG=42 -D_XOPEN_SOURCE=600 -D_ALL_SOURCE -D_OPEN_SYS_FILE_EXT=1 -D_AE_BIMODAL=1 -D_ENHANCED_ASCII_EXT=0xFFFFFFFF"
-    export ZOPEN_CFLAGS="-fzos-le-char-mode=ascii -std=gnu11 -mnocsect -fno-short-enums -Wno-error"
-    export ZOPEN_CXXFLAGS="-fzos-le-char-mode=ascii -mnocsect -fno-short-enums -Wno-error"
+    export ZOPEN_CFLAGS="-fzos-le-char-mode=ascii -std=gnu11 -mnocsect -fno-short-enums -Wno-error -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc"
+    export ZOPEN_CXXFLAGS="-fzos-le-char-mode=ascii -mnocsect -fno-short-enums -Wno-error -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc"
     export ZOPEN_LDFLAGS="-Wl,-bedit=no"
 
     if \$buildInReleaseMode; then
