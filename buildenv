@@ -53,6 +53,7 @@ cat <<zz
     export ZOPEN_CFLAGS="-fzos-le-char-mode=ascii -std=gnu11 -mnocsect -fno-short-enums -Wno-error -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc"
     export ZOPEN_CXXFLAGS="-fzos-le-char-mode=ascii -mnocsect -fno-short-enums -Wno-error -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc"
     export ZOPEN_LDFLAGS="-Wl,-bedit=no"
+    export ZOPEN_COMP="CLANG"
 
     if \$buildInReleaseMode; then
       ZOPEN_CFLAGS="\${ZOPEN_CFLAGS} -O3";
