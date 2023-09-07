@@ -1,5 +1,13 @@
 # Currently just checks for the presence of clang on the system, used to simplify zopen build 
 # In the future, this will be used to build clang from source
+
+# Switch to specify compilers
+# USE_OPEN_IBM_CLANG=true
+#   - use /usr/lpp/IBM/cnw/openxl/bin/ibm-clang
+# USE_OPEN_IBM_CLANG=false
+#   - use /bin/xlclang 
+USE_OPEN_IBM_CLANG=true
+
 export ZOPEN_TYPE="BARE"
 
 export ZOPEN_NAME="comp_clang"
@@ -27,7 +35,11 @@ zopen_append_to_env()
 cat <<zz
   if [ ! -z "\$ZOPEN_IN_ZOPEN_BUILD" ]; then
     # Find the path to clang
-    CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
+    if [ ${USE_OPEN_IBM_CLANG} = true ] ; then
+        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type ibm-clang | cut -f3 -d' ')
+    else
+        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
+    fi
   else
     CLANG_PATH=\$(/bin/type clang | cut -f3 -d' ')
   fi
@@ -47,8 +59,15 @@ cat <<zz
   if [ ! -z "\$ZOPEN_IN_ZOPEN_BUILD" ]; then
     # Set the PATH environment variable to the directory of the Clang path
     export PATH="\$(dirname "\${CLANG_PATH}"):\${PATH}"
-    export CC="clang"
-    export CXX="clang++"
+    # Set the CC/CXX environment variables to the proper compiler
+    if [ ${USE_OPEN_IBM_CLANG} = true ] ; then
+        export CC="ibm-clang"
+        export CXX="ibm-clang++"
+    else
+        export CC="clang"
+        export CXX="clang++"
+    fi
+
     export ZOPEN_CPPFLAGS="-DNSIG=42 -D_XOPEN_SOURCE=600 -D_ALL_SOURCE -D_OPEN_SYS_FILE_EXT=1 -D_AE_BIMODAL=1 -D_ENHANCED_ASCII_EXT=0xFFFFFFFF"
     export ZOPEN_CFLAGS="-fzos-le-char-mode=ascii -std=gnu11 -mnocsect -fno-short-enums -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc"
     export ZOPEN_CXXFLAGS="-fzos-le-char-mode=ascii -mnocsect -fno-short-enums -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc"
