@@ -1,13 +1,6 @@
 # Currently just checks for the presence of clang on the system, used to simplify zopen build 
 # In the future, this will be used to build clang from source
 
-# Switch to specify compilers
-# USE_OPEN_IBM_CLANG=true
-#   - use /usr/lpp/IBM/cnw/openxl/bin/ibm-clang
-# USE_OPEN_IBM_CLANG=false
-#   - use /bin/xlclang 
-USE_OPEN_IBM_CLANG=true
-
 export ZOPEN_TYPE="BARE"
 
 export ZOPEN_NAME="comp_clang"
@@ -34,15 +27,54 @@ zopen_append_to_env()
 {
 cat <<zz
   if [ ! -z "\$ZOPEN_IN_ZOPEN_BUILD" ]; then
+    #
     # Find the path to clang
-    if [ ${USE_OPEN_IBM_CLANG} = true ] ; then
-        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type ibm-clang | cut -f3 -d' ')
+    #
+
+    # If ibm-clang exists, preferably use it.
+    CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type ibm-clang | cut -f3 -d' ')
+    CLANG_BIN=\$(basename \${CLANG_PATH})
+    if [ "\${CLANG_BIN}" = "ibm-clang" ] ; then
+        # ibm-clang exists
+        echo "Using ibm-clang: \${CLANG_PATH}"
     else
-        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
+        echo "ibm-clang does not exist, trying next compiler choice..."
+        CLANG_BIN=""
     fi
+
+    # fall back on clang 
+    if [ -z "\${CLANG_BIN}" ] ; then
+        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
+        CLANG_BIN=\$(basename \${CLANG_PATH})
+        if [ "\${CLANG_BIN}" = "clang" ] ; then
+            # clang exists
+            echo "Using clang: \${CLANG_PATH}"
+        else
+            echo "clang does not exist, trying next compiler choice..."
+            CLANG_BIN=""
+        fi
+    fi
+
+    # lastly try xlclang
+    if [ -z "\${CLANG_BIN}" ]  ; then
+        # assume xlclang will have extra cached property, use field 4
+        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type xlclang | cut -f4 -d' ')
+        CLANG_BIN=\$(basename \${CLANG_PATH})
+        if [ "\${CLANG_BIN}" = "xlclang" ] ; then
+            # xlclang exists
+            echo "Using xlclang: \${CLANG_PATH}"
+            echo "WARNING: Might not work..."
+        else
+            echo "xlclang does not exist, no possible compiler. STOP."
+            exit 99
+        fi
+    fi
+
   else
+    # If not zopen build, use clang only?
     CLANG_PATH=\$(/bin/type clang | cut -f3 -d' ')
   fi
+
 
   echo "Checking for existing Clang installation..."
   # If Clang is not found, exit with an error message
@@ -60,12 +92,17 @@ cat <<zz
     # Set the PATH environment variable to the directory of the Clang path
     export PATH="\$(dirname "\${CLANG_PATH}"):\${PATH}"
     # Set the CC/CXX environment variables to the proper compiler
-    if [ ${USE_OPEN_IBM_CLANG} = true ] ; then
+    if [ "\${CLANG_BIN}" = "ibm-clang" ] ; then
         export CC="ibm-clang"
         export CXX="ibm-clang++"
-    else
+    fi
+    if [ "\${CLANG_BIN}" = "clang" ] ; then
         export CC="clang"
         export CXX="clang++"
+    fi
+    if [ "\${CLANG_BIN}" = "xlclang" ] ; then
+        export CC="xlclang"
+        export CXX="xlclang++"
     fi
 
     export ZOPEN_CPPFLAGS="-DNSIG=42 -D_XOPEN_SOURCE=600 -D_ALL_SOURCE -D_OPEN_SYS_FILE_EXT=1 -D_AE_BIMODAL=1 -D_ENHANCED_ASCII_EXT=0xFFFFFFFF"
@@ -99,6 +136,7 @@ cat <<zz
       printError "clang compiler specified, need to be running at least IBM C for Open Enterprise Languages on z/OS 2"
     fi
   fi
+
 zz
 }
 
