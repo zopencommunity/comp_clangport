@@ -31,7 +31,7 @@ cat <<zz
     # Find the path to clang
     #
 
-    # If ibm-clang exists, preferably use it.
+    # Use ibm-clang preferably...
     CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type ibm-clang | cut -f3 -d' ')
     CLANG_BIN=\$(basename \${CLANG_PATH})
     if [ "\${CLANG_BIN}" = "ibm-clang" ] ; then
@@ -42,7 +42,7 @@ cat <<zz
         CLANG_BIN=""
     fi
 
-    # fall back on clang 
+    # ...fall back on clang 
     if [ -z "\${CLANG_BIN}" ] ; then
         CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
         CLANG_BIN=\$(basename \${CLANG_PATH})
@@ -50,23 +50,7 @@ cat <<zz
             # clang exists
             echo "Using clang: \${CLANG_PATH}"
         else
-            echo "clang does not exist, trying next compiler choice..."
-            CLANG_BIN=""
-        fi
-    fi
-
-    # lastly try xlclang
-    if [ -z "\${CLANG_BIN}" ]  ; then
-        # assume xlclang will have extra cached property, use field 4
-        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type xlclang | cut -f4 -d' ')
-        CLANG_BIN=\$(basename \${CLANG_PATH})
-        if [ "\${CLANG_BIN}" = "xlclang" ] ; then
-            # xlclang exists
-            echo "Using xlclang: \${CLANG_PATH}"
-            echo "WARNING: Might not work..."
-        else
-            echo "xlclang does not exist, no possible compiler. STOP."
-            exit 99
+            echo "clang does not exist. No valid compiler."
         fi
     fi
 
@@ -99,10 +83,6 @@ cat <<zz
     if [ "\${CLANG_BIN}" = "clang" ] ; then
         export CC="clang"
         export CXX="clang++"
-    fi
-    if [ "\${CLANG_BIN}" = "xlclang" ] ; then
-        export CC="xlclang"
-        export CXX="xlclang++"
     fi
 
     export ZOPEN_CPPFLAGS="-DNSIG=42 -D_XOPEN_SOURCE=600 -D_ALL_SOURCE -D_OPEN_SYS_FILE_EXT=1 -D_AE_BIMODAL=1 -D_ENHANCED_ASCII_EXT=0xFFFFFFFF"
