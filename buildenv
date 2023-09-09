@@ -1,5 +1,6 @@
 # Currently just checks for the presence of clang on the system, used to simplify zopen build 
 # In the future, this will be used to build clang from source
+
 export ZOPEN_TYPE="BARE"
 
 export ZOPEN_NAME="comp_clang"
@@ -26,11 +27,38 @@ zopen_append_to_env()
 {
 cat <<zz
   if [ ! -z "\$ZOPEN_IN_ZOPEN_BUILD" ]; then
+    #
     # Find the path to clang
-    CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
+    #
+
+    # Use ibm-clang preferably...
+    CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type ibm-clang | cut -f3 -d' ')
+    CLANG_BIN=\$(basename \${CLANG_PATH})
+    if [ "\${CLANG_BIN}" = "ibm-clang" ] ; then
+        # ibm-clang exists
+        echo "Using ibm-clang: \${CLANG_PATH}"
+    else
+        echo "ibm-clang does not exist, trying next compiler choice..."
+        CLANG_BIN=""
+    fi
+
+    # ...fall back on clang 
+    if [ -z "\${CLANG_BIN}" ] ; then
+        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
+        CLANG_BIN=\$(basename \${CLANG_PATH})
+        if [ "\${CLANG_BIN}" = "clang" ] ; then
+            # clang exists
+            echo "Using clang: \${CLANG_PATH}"
+        else
+            echo "clang does not exist. No valid compiler."
+        fi
+    fi
+
   else
+    # If not zopen build, use clang only?
     CLANG_PATH=\$(/bin/type clang | cut -f3 -d' ')
   fi
+
 
   echo "Checking for existing Clang installation..."
   # If Clang is not found, exit with an error message
@@ -47,8 +75,16 @@ cat <<zz
   if [ ! -z "\$ZOPEN_IN_ZOPEN_BUILD" ]; then
     # Set the PATH environment variable to the directory of the Clang path
     export PATH="\$(dirname "\${CLANG_PATH}"):\${PATH}"
-    export CC="clang"
-    export CXX="clang++"
+    # Set the CC/CXX environment variables to the proper compiler
+    if [ "\${CLANG_BIN}" = "ibm-clang" ] ; then
+        export CC="ibm-clang"
+        export CXX="ibm-clang++"
+    fi
+    if [ "\${CLANG_BIN}" = "clang" ] ; then
+        export CC="clang"
+        export CXX="clang++"
+    fi
+
     export ZOPEN_CPPFLAGS="-DNSIG=42 -D_XOPEN_SOURCE=600 -D_ALL_SOURCE -D_OPEN_SYS_FILE_EXT=1 -D_AE_BIMODAL=1 -D_ENHANCED_ASCII_EXT=0xFFFFFFFF"
     export ZOPEN_CFLAGS="-fzos-le-char-mode=ascii -std=gnu11 -mnocsect -fno-short-enums -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc"
     export ZOPEN_CXXFLAGS="-fzos-le-char-mode=ascii -mnocsect -fno-short-enums -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc"
@@ -80,6 +116,7 @@ cat <<zz
       printError "clang compiler specified, need to be running at least IBM C for Open Enterprise Languages on z/OS 2"
     fi
   fi
+
 zz
 }
 
