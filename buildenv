@@ -55,12 +55,9 @@ cat <<zz
     fi
 
   else
-    # If not zopen build, use clang only?
-    CLANG_PATH=\$(/bin/type clang | cut -f3 -d' ')
+    return 0 # This should do nothing if not in zopen build
   fi
 
-
-  echo "Checking for existing Clang installation..."
   # If Clang is not found, exit with an error message
   if [ -z "\${CLANG_PATH}" ]; then
       echo "clang not found. Please download and install from https://epwt-www.mybluemix.net/software/support/trial/cst/programwebsite.wss?siteId=1803."
