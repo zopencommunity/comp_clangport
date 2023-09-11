@@ -34,7 +34,7 @@ cat <<zz
     # Use ibm-clang preferably...
     CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type ibm-clang | cut -f3 -d' ')
     CLANG_BIN=\$(basename \${CLANG_PATH})
-    if [ "\${CLANG_BIN}" = "ibm-clang" ] ; then
+    if [ "\${CLANG_BIN}x" = "ibm-clangx" ] ; then
         # ibm-clang exists
         echo "Using ibm-clang: \${CLANG_PATH}"
     else
@@ -46,14 +46,11 @@ cat <<zz
     if [ -z "\${CLANG_BIN}" ] ; then
         CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
         CLANG_BIN=\$(basename \${CLANG_PATH})
-        if [ "\${CLANG_BIN}" = "clang" ] ; then
+        if [ "\${CLANG_BIN}x" = "clangx" ] ; then
             # clang exists
             echo "Using clang: \${CLANG_PATH}"
-        else
-            echo "clang does not exist. No valid compiler."
         fi
     fi
-
   else
     return 0 # This should do nothing if not in zopen build
   fi
