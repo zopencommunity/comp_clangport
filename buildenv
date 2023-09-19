@@ -32,11 +32,11 @@ cat <<zz
     #
 
     # Use ibm-clang preferably...
-    CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type ibm-clang | cut -f3 -d' ')
-    CLANG_BIN=\$(basename \${CLANG_PATH})
-    if [ "\${CLANG_BIN}x" = "ibm-clangx" ] ; then
+    CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type ibm-clang 2>/dev/null | cut -f3 -d' ')
+    if [ ! -z "\${CLANG_PATH}" ] ; then
         # ibm-clang exists
         echo "Using ibm-clang: \${CLANG_PATH}"
+        CLANG_BIN=\$(basename \${CLANG_PATH})
     else
         echo "ibm-clang does not exist, trying next compiler choice..."
         CLANG_BIN=""
@@ -44,11 +44,11 @@ cat <<zz
 
     # ...fall back on clang 
     if [ -z "\${CLANG_BIN}" ] ; then
-        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang | cut -f3 -d' ')
-        CLANG_BIN=\$(basename \${CLANG_PATH})
-        if [ "\${CLANG_BIN}x" = "clangx" ] ; then
+        CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang 2>/dev/null | cut -f3 -d' ')
+        if [ ! -z "\${CLANG_PATH}" ] ; then
             # clang exists
             echo "Using clang: \${CLANG_PATH}"
+            CLANG_BIN=\$(basename \${CLANG_PATH})
         fi
     fi
   else
