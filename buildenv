@@ -117,3 +117,8 @@ zz
 zopen_install() {
   mkdir -p $ZOPEN_INSTALL_DIR
 }
+
+zopen_get_version()
+{
+  PATH=$ZOPEN_OLD_PATH clang --version | head -1 | awk '{print $11; }'
+}
