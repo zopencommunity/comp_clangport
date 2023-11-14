@@ -115,7 +115,8 @@ zz
 }
 
 zopen_install() {
-  mkdir -p $ZOPEN_INSTALL_DIR
+  mkdir -p $ZOPEN_INSTALL_DIR/bin
+  cp -r $ZOPEN_ROOT/bin/* $ZOPEN_INSTALL_DIR/bin
 }
 
 zopen_get_version()
