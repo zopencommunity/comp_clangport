@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# Wrapper for /bin/ar on z/OS to handle .o entries with duplicate basename
+# that /bin/ar ignores. If duplicates are found from the initial /bin/ar,
+# it copies them to a temp directory under a different name, in which each
+# '/' in the path is replaced by '_', and then re-runs /bin/ar -qc to append
+# those renamed .o's to the target archive.
+
+if [ "$#" -eq 0 ]; then
+  echo "usage: $0 <arguments for /bin/ar>" >&2
+  exit 1
+fi
+
+ID=$(basename "$0").; i=0
+while [ "$i" -lt 5 ]; do
+  ID="$ID$((RANDOM))"
+  i=$((i+1))
+done
+
+_TMPERR=${TMPDIR:-/tmp}/$ID.tmp.err
+_TMPDIR=${TMPDIR:-/tmp}/$ID.tmp.dir
+
+cleanup() {
+  /bin/rm -rf "$_TMPDIR" "$_TMPERR" && exit
+}
+
+trap cleanup EXIT INT TERM QUIT HUP
+
+/bin/rm -rf "$_TMPDIR" && /bin/mkdir -p "$_TMPDIR"
+
+/bin/ar "$@" 2> "$_TMPERR"
+rc=$?
+[ $rc -ne 0 ] && /bin/cat "$_TMPERR" >&2 && exit $rc
+! [ -s "$_TMPERR" ] && exit $rc
+
+dups=$(awk '/ar: FSUM9942 .* ignored, same basename as / {print $3}' "$_TMPERR" | sed 's:"::g')
+[ -z "$dups" ] && /bin/cat "$_TMPERR" >&2 && exit $rc # some other warning not handled here
+
+tgt=
+for tok in "$@"; do
+  case "$tok" in
+    *.a)
+      tgt="$tok"
+      break
+      ;;
+    *.o)
+      echo "Error in $0: no .a file found before the first .o in $@" >&2
+      exit 1
+      ;;
+  esac
+done
+
+[ -z "$tgt" ] && echo "Error in $0: no .a file found in $@" >&2 && exit 1
+
+ndups=
+for o in $dups; do
+  newtgtname=$(echo "$o" | sed 's:/:_:g')
+  /bin/cp "$o" "$_TMPDIR/$newtgtname"
+  ndups="$ndups $_TMPDIR/$newtgtname"
+done
+
+/bin/ar -qc "$tgt" $ndups
