@@ -35,10 +35,10 @@ cat <<zz
     CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type ibm-clang 2>/dev/null | cut -f3 -d' ')
     if [ ! -z "\${CLANG_PATH}" ] ; then
         # ibm-clang exists
-        echo "Using ibm-clang: \${CLANG_PATH}"
+        #echo "Using ibm-clang: \${CLANG_PATH}"
         CLANG_BIN=\$(basename \${CLANG_PATH})
     else
-        echo "ibm-clang does not exist, trying next compiler choice..."
+        #echo "ibm-clang does not exist, trying next compiler choice..."
         CLANG_BIN=""
     fi
 
@@ -47,7 +47,7 @@ cat <<zz
         CLANG_PATH=\$(PATH="\$ZOPEN_OLD_PATH" /bin/type clang 2>/dev/null | cut -f3 -d' ')
         if [ ! -z "\${CLANG_PATH}" ] ; then
             # clang exists
-            echo "Using clang: \${CLANG_PATH}"
+            #echo "Using clang: \${CLANG_PATH}"
             CLANG_BIN=\$(basename \${CLANG_PATH})
         fi
     fi
@@ -57,12 +57,12 @@ cat <<zz
 
   # If Clang is not found, exit with an error message
   if [ -z "\${CLANG_PATH}" ]; then
-      echo "clang not found. Please download and install from https://epwt-www.mybluemix.net/software/support/trial/cst/programwebsite.wss?siteId=1803."
+      echo "clang not found. Please download and install from https://epwt-www.mybluemix.net/software/support/trial/cst/programwebsite.wss?siteId=1803." >&2
       return 1
   fi
 
   if ! \${CLANG_PATH} --version 2>&1 | grep -q "s390x-ibm-zos"; then
-    echo "The clang executable is not a zos clang compiler. Please download and install from https://epwt-www.mybluemix.net/software/support/trial/cst/programwebsite.wss?siteId=1803."
+    echo "The clang executable is not a zos clang compiler. Please download and install from https://epwt-www.mybluemix.net/software/support/trial/cst/programwebsite.wss?siteId=1803." >&2 
     return 1;
   fi
 
@@ -95,19 +95,19 @@ cat <<zz
     # Confirm clang is at least OEL 2.0.0 (aka __COMPILER_VER__=50000000)
     ccraw=\$(\${CC} -E -dM - </dev/null | grep '__COMPILER_VER__' | awk '{print substr(\$3,3)}')
     if [ "\${ccraw}x" = "x" ]; then
-      printError "clang compiler specified, but it is not a 'IBM C/C++ for Open Enterprise Languages on z/OS' compiler"
+      echo "clang compiler specified, but it is not a 'IBM C/C++ for Open Enterprise Languages on z/OS' compiler" >&2
     fi
     if [ \${ccraw} -lt 50000000 ] ; then
-      printError "clang compiler specified, need to be running at least IBM C for Open Enterprise Languages on z/OS 2"
+      echo "clang compiler specified, need to be running at least IBM C for Open Enterprise Languages on z/OS 2" >&2
     fi
 
     # Confirm clang++ is at least OEL 2.0.0 (aka __COMPILER_VER__=50000000)
     ccraw=\$(\${CXX} -x c++ -E -dM - </dev/null | grep '__COMPILER_VER__' | awk '{print substr(\$3,3)}')
     if [ "\${ccraw}x" = "x" ]; then
-      printError "clang++ compiler specified, but it is not a 'IBM C/C++ for Open Enterprise Languages on z/OS' compiler"
+      echo "clang++ compiler specified, but it is not a 'IBM C/C++ for Open Enterprise Languages on z/OS' compiler" >&2
     fi
     if [ \${ccraw} -lt 50000000 ] ; then
-      printError "clang compiler specified, need to be running at least IBM C for Open Enterprise Languages on z/OS 2"
+      echo "clang compiler specified, need to be running at least IBM C for Open Enterprise Languages on z/OS 2" >&2
     fi
   fi
 
