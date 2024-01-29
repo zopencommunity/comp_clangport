@@ -21,20 +21,22 @@ _TMPERR=${TMPDIR:-/tmp}/$ID.tmp.err
 _TMPDIR=${TMPDIR:-/tmp}/$ID.tmp.dir
 
 cleanup() {
-  /bin/rm -rf "$_TMPDIR" "$_TMPERR" && exit
+  /bin/rm -rf "$_TMPDIR" "$_TMPERR"
 }
 
 trap cleanup EXIT INT TERM QUIT HUP
 
 /bin/rm -rf "$_TMPDIR" && /bin/mkdir -p "$_TMPDIR"
 
+unset _TAG_REDIR_OUT
+
 /bin/ar "$@" 2> "$_TMPERR"
 rc=$?
-[ $rc -ne 0 ] && /bin/cat "$_TMPERR" >&2 && exit $rc
+[ $rc -ne 0 ] && cat "$_TMPERR" >&2 && exit $rc
 ! [ -s "$_TMPERR" ] && exit $rc
 
 dups=$(awk '/ar: FSUM9942 .* ignored, same basename as / {print $3}' "$_TMPERR" | sed 's:"::g')
-[ -z "$dups" ] && /bin/cat "$_TMPERR" >&2 && exit $rc # some other warning not handled here
+[ -z "$dups" ] && cat "$_TMPERR" >&2 && exit $rc # some other warning not handled here
 
 tgt=
 for tok in "$@"; do
