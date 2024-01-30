@@ -28,8 +28,6 @@ trap cleanup EXIT INT TERM QUIT HUP
 
 /bin/rm -rf "$_TMPDIR" && /bin/mkdir -p "$_TMPDIR"
 
-unset _TAG_REDIR_OUT
-
 /bin/ar "$@" 2> "$_TMPERR"
 rc=$?
 [ $rc -ne 0 ] && cat "$_TMPERR" >&2 && exit $rc
