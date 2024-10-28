@@ -2,6 +2,7 @@
 # In the future, this will be used to build clang from source
 
 export ZOPEN_TYPE="BARE"
+export ZOPEN_CATEGORIES="development"
 
 export ZOPEN_NAME="comp_clang"
 export ZOPEN_CONFIGURE=skip
